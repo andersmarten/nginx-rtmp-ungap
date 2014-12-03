@@ -1335,6 +1335,7 @@ ngx_rtmp_relay_close(ngx_rtmp_session_t *s)
 
     if (s->static_relay) {
         ngx_add_timer(ctx->static_evt, racf->pull_reconnect);
+        return;
     }
 
     if (ctx->publish == NULL) {

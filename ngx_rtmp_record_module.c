@@ -31,9 +31,9 @@ static char * ngx_rtmp_record_merge_app_conf(ngx_conf_t *cf,
 static ngx_int_t ngx_rtmp_record_write_frame(ngx_rtmp_session_t *s,
        ngx_rtmp_record_rec_ctx_t *rctx,
        ngx_rtmp_header_t *h, ngx_chain_t *in, ngx_int_t inc_nframes);
-static ngx_int_t ngx_rtmp_record_avd(ngx_rtmp_session_t *s,
+static ngx_int_t ngx_rtmp_record_av(ngx_rtmp_session_t *s,
        ngx_rtmp_header_t *h, ngx_chain_t *in);
-static ngx_int_t ngx_rtmp_record_node_avd(ngx_rtmp_session_t *s,
+static ngx_int_t ngx_rtmp_record_node_av(ngx_rtmp_session_t *s,
        ngx_rtmp_record_rec_ctx_t *rctx, ngx_rtmp_header_t *h, ngx_chain_t *in);
 static ngx_int_t ngx_rtmp_record_node_open(ngx_rtmp_session_t *s,
        ngx_rtmp_record_rec_ctx_t *rctx);
@@ -47,13 +47,9 @@ static ngx_int_t ngx_rtmp_record_init(ngx_rtmp_session_t *s);
 static ngx_conf_bitmask_t  ngx_rtmp_record_mask[] = {
     { ngx_string("off"),                NGX_RTMP_RECORD_OFF         },
     { ngx_string("all"),                NGX_RTMP_RECORD_AUDIO       |
-                                        NGX_RTMP_RECORD_VIDEO       |
-                                        NGX_RTMP_RECORD_DATA        },
-    { ngx_string("av"),                 NGX_RTMP_RECORD_AUDIO       |
                                         NGX_RTMP_RECORD_VIDEO       },
     { ngx_string("audio"),              NGX_RTMP_RECORD_AUDIO       },
     { ngx_string("video"),              NGX_RTMP_RECORD_VIDEO       },
-    { ngx_string("data"),               NGX_RTMP_RECORD_DATA        },
     { ngx_string("keyframes"),          NGX_RTMP_RECORD_KEYFRAMES   },
     { ngx_string("manual"),             NGX_RTMP_RECORD_MANUAL      },
     { ngx_null_string,                  0                           }
@@ -890,8 +886,7 @@ ngx_rtmp_record_write_frame(ngx_rtmp_session_t *s,
 
     if (h->type == NGX_RTMP_MSG_VIDEO) {
         rctx->video = 1;
-    }
-    if (h->type == NGX_RTMP_MSG_AUDIO) {
+    } else {
         rctx->audio = 1;
     }
 
@@ -998,7 +993,7 @@ ngx_rtmp_record_get_chain_mlen(ngx_chain_t *in)
 
 
 static ngx_int_t
-ngx_rtmp_record_avd(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
+ngx_rtmp_record_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                    ngx_chain_t *in)
 {
     ngx_rtmp_record_ctx_t          *ctx;
@@ -1014,7 +1009,7 @@ ngx_rtmp_record_avd(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     rctx = ctx->rec.elts;
 
     for (n = 0; n < ctx->rec.nelts; ++n, ++rctx) {
-        ngx_rtmp_record_node_avd(s, rctx, h, in);
+        ngx_rtmp_record_node_av(s, rctx, h, in);
     }
 
     return NGX_OK;
@@ -1022,7 +1017,7 @@ ngx_rtmp_record_avd(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
 
 static ngx_int_t
-ngx_rtmp_record_node_avd(ngx_rtmp_session_t *s, ngx_rtmp_record_rec_ctx_t *rctx,
+ngx_rtmp_record_node_av(ngx_rtmp_session_t *s, ngx_rtmp_record_rec_ctx_t *rctx,
                         ngx_rtmp_header_t *h, ngx_chain_t *in)
 {
     ngx_time_t                      next;
@@ -1080,12 +1075,6 @@ ngx_rtmp_record_node_avd(ngx_rtmp_session_t *s, ngx_rtmp_record_rec_ctx_t *rctx,
 
     if (h->type == NGX_RTMP_MSG_AUDIO &&
        (rracf->flags & NGX_RTMP_RECORD_AUDIO) == 0)
-    {
-        return NGX_OK;
-    }
-
-    if (h->type == NGX_RTMP_MSG_AMF_META &&
-       (rracf->flags & NGX_RTMP_RECORD_DATA) == 0)
     {
         return NGX_OK;
     }
@@ -1291,13 +1280,10 @@ ngx_rtmp_record_postconfiguration(ngx_conf_t *cf)
     cmcf = ngx_rtmp_conf_get_module_main_conf(cf, ngx_rtmp_core_module);
 
     h = ngx_array_push(&cmcf->events[NGX_RTMP_MSG_AUDIO]);
-    *h = ngx_rtmp_record_avd;
+    *h = ngx_rtmp_record_av;
 
     h = ngx_array_push(&cmcf->events[NGX_RTMP_MSG_VIDEO]);
-    *h = ngx_rtmp_record_avd;
-
-    h = ngx_array_push(&cmcf->events[NGX_RTMP_MSG_AMF_META]);
-    *h = ngx_rtmp_record_avd;
+    *h = ngx_rtmp_record_av;
 
     next_publish = ngx_rtmp_publish;
     ngx_rtmp_publish = ngx_rtmp_record_publish;
