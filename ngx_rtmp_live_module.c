@@ -1056,9 +1056,9 @@ ngx_rtmp_live_data(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     uint32_t                        delta;
     ngx_rtmp_live_chunk_stream_t   *cs;
 
-    u_char                         *msg_type;
+    /*u_char                         *msg_type;*/
 
-    msg_type = (u_char *)out_elts[0].data;
+    /*msg_type = (u_char *)out_elts[0].data;*/
 
     lacf = ngx_rtmp_get_module_app_conf(s, ngx_rtmp_live_module);
     if (lacf == NULL) {
@@ -1075,8 +1075,8 @@ ngx_rtmp_live_data(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     }
 
     if (ctx->publishing == 0) {
-        ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
-                       "live: %s from non-publisher", msg_type);
+        /*ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
+                       "live: %s from non-publisher", msg_type);*/
         return NGX_OK;
     }
 
@@ -1085,9 +1085,9 @@ ngx_rtmp_live_data(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         return NGX_OK;
     }
 
-    ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
+    /*ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                    "live: %s packet timestamp=%uD",
-                   msg_type, h->timestamp);
+                   msg_type, h->timestamp);*/
 
     cscf = ngx_rtmp_get_module_srv_conf(s, ngx_rtmp_core_module);
 
